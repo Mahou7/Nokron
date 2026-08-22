@@ -13,10 +13,21 @@
     const avatarDot = document.getElementById('avatar-dot');
     const profileBtnLabel = document.getElementById('profile-btn-label');
     const authError = document.getElementById('auth-error');
+    const authSuccess = document.getElementById('auth-success');
+    const verifyEmailNotice = document.getElementById('verify-email-notice');
 
     function openModal(){
       overlay.classList.add('open');
       renderModalState();
+      // Se a pessoa continua logada mas ainda não confirmou o e-mail, atualiza
+      // o status de verificação (o Firebase não avisa sozinho quando ela clica
+      // no link do e-mail em outra aba, então a gente confere de novo aqui).
+      if(currentUser && auth.currentUser && !currentUser.emailVerified){
+        auth.currentUser.reload().then(() => {
+          if(currentUser) currentUser.emailVerified = auth.currentUser.emailVerified;
+          renderModalState();
+        }).catch(() => {});
+      }
     }
     function closeModal(){ overlay.classList.remove('open'); }
 
@@ -24,24 +35,41 @@
     modalClose.addEventListener('click', closeModal);
     overlay.addEventListener('click', (e) => { if(e.target === overlay) closeModal(); });
 
+    function showAuthFormPane(name){
+      document.querySelectorAll('.form-pane').forEach(p => p.classList.remove('active'));
+      document.getElementById('pane-' + name).classList.add('active');
+      hideAuthError();
+      hideAuthSuccess();
+    }
+
     // Tabs login / cadastro
     document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.form-pane').forEach(p => p.classList.remove('active'));
         btn.classList.add('active');
-        document.getElementById('pane-' + btn.dataset.tab).classList.add('active');
-        hideAuthError();
+        document.querySelector('.tabs').style.display = '';
+        document.getElementById('modal-title').textContent = 'Entrar / Cadastrar';
+        showAuthFormPane(btn.dataset.tab);
       });
     });
 
     function showAuthError(msg){
+      authSuccess.hidden = true;
       authError.textContent = msg;
       authError.hidden = false;
     }
     function hideAuthError(){
       authError.hidden = true;
       authError.textContent = '';
+    }
+    function showAuthSuccess(msg){
+      authError.hidden = true;
+      authSuccess.textContent = msg;
+      authSuccess.hidden = false;
+    }
+    function hideAuthSuccess(){
+      authSuccess.hidden = true;
+      authSuccess.textContent = '';
     }
 
     function renderModalState(){
@@ -53,6 +81,7 @@
         document.getElementById('profile-sub').textContent =
           '@' + currentUser.username + (currentUser.discord ? ' · Discord: ' + currentUser.discord : '');
         document.getElementById('profile-avatar-big').textContent = currentUser.nick.charAt(0).toUpperCase();
+        verifyEmailNotice.hidden = !!currentUser.emailVerified;
       } else {
         authView.style.display = 'block';
         profileView.style.display = 'none';
@@ -83,11 +112,18 @@
     }
 
     // Busca o perfil (nick, discord, username) salvo no Firestore pro uid logado.
-    function loadUserProfile(uid, email){
-      return db.collection('users').doc(uid).get().then(doc => {
+    function loadUserProfile(user){
+      return db.collection('users').doc(user.uid).get().then(doc => {
         if(!doc.exists) return null;
         const data = doc.data();
-        return { uid: uid, email: email, nick: data.nick, discord: data.discord || '', username: data.username };
+        return {
+          uid: user.uid,
+          email: user.email,
+          emailVerified: user.emailVerified,
+          nick: data.nick,
+          discord: data.discord || '',
+          username: data.username
+        };
       });
     }
 
@@ -96,7 +132,7 @@
     // anterior — sem precisar entrar de novo.
     auth.onAuthStateChanged(user => {
       if(user){
-        loadUserProfile(user.uid, user.email)
+        loadUserProfile(user)
           .then(profile => { if(profile) applyUser(profile); })
           .catch(err => console.error('Erro ao carregar perfil:', err));
       } else {
@@ -131,6 +167,7 @@
     loginForm.addEventListener('submit', (e) => {
       e.preventDefault();
       hideAuthError();
+      hideAuthSuccess();
 
       const identifier = document.getElementById('login-identifier').value.trim();
       const senha = document.getElementById('login-senha').value;
@@ -138,14 +175,7 @@
 
       setBusy(loginSubmitBtn, true, 'Entrando...', 'Entrar');
 
-      const resolveEmail = identifier.includes('@')
-        ? Promise.resolve(identifier)
-        : db.collection('usernames').doc(identifier.toLowerCase()).get().then(doc => {
-            if(!doc.exists){ const e = new Error('username not found'); e.code = 'auth/user-not-found'; throw e; }
-            return doc.data().email;
-          });
-
-      resolveEmail
+      resolveEmailFromIdentifier(identifier)
         .then(email => auth.signInWithEmailAndPassword(email, senha))
         .then(() => {
           closeModal();
@@ -153,6 +183,57 @@
         })
         .catch(err => showAuthError(friendlyAuthError(err)))
         .finally(() => setBusy(loginSubmitBtn, false, 'Entrando...', 'Entrar'));
+    });
+
+    // Usado tanto no login quanto na redefinição de senha: aceita e-mail
+    // direto, ou resolve o "nome de usuário no site" pro e-mail cadastrado.
+    function resolveEmailFromIdentifier(identifier){
+      if(identifier.includes('@')) return Promise.resolve(identifier);
+      return db.collection('usernames').doc(identifier.toLowerCase()).get().then(doc => {
+        if(!doc.exists){ const e = new Error('username not found'); e.code = 'auth/user-not-found'; throw e; }
+        return doc.data().email;
+      });
+    }
+
+    // ---------- Esqueci minha senha ----------
+    const forgotPasswordLink = document.getElementById('forgot-password-link');
+    const resetForm = document.getElementById('pane-reset');
+    const resetSubmitBtn = document.getElementById('reset-submit-btn');
+    const resetBackBtn = document.getElementById('reset-back-btn');
+    const tabsWrap = document.querySelector('.tabs');
+
+    forgotPasswordLink.addEventListener('click', () => {
+      showAuthFormPane('reset');
+      tabsWrap.style.display = 'none';
+      document.getElementById('modal-title').textContent = 'Redefinir senha';
+    });
+
+    resetBackBtn.addEventListener('click', () => {
+      tabsWrap.style.display = '';
+      document.getElementById('modal-title').textContent = 'Entrar / Cadastrar';
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelector('.tab-btn[data-tab="login"]').classList.add('active');
+      showAuthFormPane('login');
+    });
+
+    resetForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      hideAuthError();
+      hideAuthSuccess();
+
+      const identifier = document.getElementById('reset-identifier').value.trim();
+      if(!identifier) return;
+
+      setBusy(resetSubmitBtn, true, 'Enviando...', 'Enviar link de redefinição');
+
+      resolveEmailFromIdentifier(identifier)
+        .then(email => auth.sendPasswordResetEmail(email))
+        .then(() => {
+          showAuthSuccess('Link de redefinição enviado! Confira sua caixa de entrada (e o spam).');
+          resetForm.reset();
+        })
+        .catch(err => showAuthError(friendlyAuthError(err)))
+        .finally(() => setBusy(resetSubmitBtn, false, 'Enviando...', 'Enviar link de redefinição'));
     });
 
     // ---------- Cadastro ----------
@@ -163,6 +244,7 @@
     cadastroForm.addEventListener('submit', (e) => {
       e.preventDefault();
       hideAuthError();
+      hideAuthSuccess();
 
       const email = document.getElementById('cad-email').value.trim();
       const nick = document.getElementById('cad-nick').value.trim();
@@ -212,10 +294,17 @@
           // Se não conseguir reservar o perfil/usuário (ex: alguém pegou o
           // mesmo nome de usuário nesse meio tempo), desfaz a conta criada
           // pra pessoa poder tentar de novo do zero.
-          return batch.commit().catch(batchErr => cred.user.delete().finally(() => { throw batchErr; }));
+          return batch.commit()
+            .catch(batchErr => cred.user.delete().finally(() => { throw batchErr; }))
+            .then(() => cred.user.sendEmailVerification().catch(err => {
+              // Não deixamos uma falha só no envio do e-mail de verificação
+              // derrubar o cadastro inteiro — a pessoa pode reenviar depois
+              // pelo próprio perfil.
+              console.error('Falha ao enviar e-mail de verificação:', err);
+            }));
         })
         .then(() => {
-          applyUser({ uid: uid, email: email, nick: nick, discord: discord, username: username });
+          applyUser({ uid: uid, email: email, nick: nick, discord: discord, username: username, emailVerified: false });
           closeModal();
           cadastroForm.reset();
         })
@@ -232,6 +321,23 @@
     document.getElementById('logout-btn').addEventListener('click', () => {
       auth.signOut();
       closeModal();
+    });
+
+    // ---------- Reenviar e-mail de verificação ----------
+    const resendVerificationBtn = document.getElementById('resend-verification-btn');
+    resendVerificationBtn.addEventListener('click', () => {
+      if(!auth.currentUser) return;
+      const original = resendVerificationBtn.textContent;
+      resendVerificationBtn.disabled = true;
+      auth.currentUser.sendEmailVerification()
+        .then(() => { resendVerificationBtn.textContent = 'E-mail enviado! Confira sua caixa de entrada.'; })
+        .catch(() => { resendVerificationBtn.textContent = 'Não deu certo, tente de novo.'; })
+        .finally(() => {
+          setTimeout(() => {
+            resendVerificationBtn.textContent = original;
+            resendVerificationBtn.disabled = false;
+          }, 4000);
+        });
     });
 
     // Menu mobile
