@@ -17,6 +17,17 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 
+// App Check: confirma que quem está chamando o Firebase é mesmo o site
+// (rodando num navegador de verdade), e não um script/bot batendo direto na
+// API. Usa reCAPTCHA v3, que roda em segundo plano sem pedir nada pra pessoa
+// (sem "marque a caixinha"). A chave abaixo é a "chave do site" (pública,
+// tudo bem ela ficar aqui) — a chave secreta correspondente fica só no
+// Google/Firebase, nunca aparece no código.
+firebase.appCheck().activate(
+  '6Le5WZItAAAAAHQFeHmZwmvTWgoOALKnIfdckeiw',
+  true // renova o token automaticamente em segundo plano
+);
+
 // Instâncias usadas em todo o site (script.js, encomenda.js, etc.)
 const auth = firebase.auth();
 const db = firebase.firestore();
