@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fazer Encomenda — Nokron | Jornadas Cobblemon</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ================= HEADER ================= -->
+  <header>
+    <div class="brand">
+      <a href="index.html" style="display:flex; align-items:center; gap:.75rem;">
+        <img src="logo.png" alt="Logo Nokron">
+        <div class="brand-text">
+          <h1>NOKRON</h1>
+          <span>Jornadas Cobblemon</span>
+        </div>
+      </a>
+    </div>
+
+    <nav id="main-nav">
+      <ul>
+        <li><a href="index.html#inicio">Início</a></li>
+        <li><a href="top-compradores.html">Top compradores<span class="soon-badge">em breve</span></a></li>
+        <li><a href="historico.html">Histórico de compras<span class="soon-badge">em breve</span></a></li>
+        <li><a href="tabela-valores.html">Tabela de valores<span class="soon-badge">em breve</span></a></li>
+        <li><a href="roleta.html">Roleta<span class="soon-badge">em breve</span></a></li>
+      </ul>
+    </nav>
+
+    <div class="header-actions">
+      <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menu">☰</button>
+      <a href="encomenda.html" class="btn btn-primary">Encomendar</a>
+      <button class="btn" id="profile-btn">
+        <span class="avatar-dot" id="avatar-dot">?</span>
+        <span id="profile-btn-label">Perfil</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ================= MAIN ================= -->
+  <main>
+
+    <section id="encomenda">
+      <div class="section-head">
+        <a href="index.html" class="back-link">&larr; Voltar para a página inicial</a>
+        <span class="eyebrow">Encomenda</span>
+        <h3>Faça sua encomenda</h3>
+        <p>Preencha os dados do Pokémon desejado. Ao enviar, você recebe um resumo pronto para copiar e mandar para a loja confirmar.</p>
+      </div>
+
+      <div class="order-layout">
+        <form id="order-form" class="order-form" novalidate>
+          <div class="field">
+            <label for="order-nick">Nick</label>
+            <input type="text" id="order-nick" placeholder="Seu nick no Minecraft" required>
+          </div>
+          <div class="field">
+            <label for="order-discord">Discord</label>
+            <input type="text" id="order-discord" placeholder="usuario#0000" required>
+          </div>
+          <div class="field">
+            <label for="order-pokemon-input">Pokémon</label>
+            <div class="ball-picker" id="pokemon-picker">
+              <input
+                type="text"
+                id="order-pokemon-input"
+                autocomplete="off"
+                placeholder="Digite o nome do Pokémon (ex: Charmander)"
+                required>
+              <input type="hidden" id="order-pokemon">
+              <ul class="ball-dropdown" id="pokemon-dropdown" role="listbox"></ul>
+            </div>
+          </div>
+          <div class="field">
+            <label for="order-habilidade">Habilidade</label>
+            <input type="text" id="order-habilidade" placeholder="Ex: Blaze" required>
+          </div>
+          <div class="field">
+            <label for="order-ivs">IVs</label>
+            <input type="text" id="order-ivs" placeholder="Ex: 6IV ou 31/31/31/31/31/31" required>
+          </div>
+
+          <div class="field">
+            <label for="order-pokebola-input">Pokébola</label>
+            <div class="ball-picker" id="ball-picker">
+              <input
+                type="text"
+                id="order-pokebola-input"
+                autocomplete="off"
+                placeholder="Digite ou selecione a pokébola desejada"
+                required>
+              <input type="hidden" id="order-pokebola">
+              <ul class="ball-dropdown" id="ball-dropdown" role="listbox"></ul>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary">Gerar encomenda</button>
+          <p class="modal-note">Ao enviar, sua encomenda cai automaticamente no Discord da loja. O valor é definido pela loja após a confirmação. Se o envio falhar, você poderá copiar o resumo manualmente.</p>
+        </form>
+
+        <aside class="order-side">
+          <div class="pokemon-preview" id="pokemon-preview">
+            <div class="pokemon-preview-img-wrap" id="pokemon-preview-img-wrap">
+              <span class="pokemon-preview-placeholder" id="pokemon-preview-placeholder">?</span>
+            </div>
+            <h5 id="pokemon-preview-name">Selecione um Pokémon</h5>
+            <p id="pokemon-preview-dex">A prévia aparece aqui assim que você escolher na lista ao lado.</p>
+          </div>
+
+          <div class="summary-box" id="summary-box" hidden>
+            <h5>Resumo da encomenda</h5>
+            <p class="send-status" id="send-status"></p>
+            <pre id="summary-text"></pre>
+            <button type="button" class="btn btn-ghost" id="copy-summary-btn">Copiar resumo</button>
+            <p class="modal-note" id="copy-feedback">Copie e envie este resumo para a loja no Discord para confirmar a encomenda.</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= FOOTER ================= -->
+  <footer>
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">
+          <img src="logo.png" alt="Logo Nokron">
+          <span>NOKRON</span>
+        </div>
+        <p>Loja de ovos Pokémon com a maior variedade dentro do servidor Jornadas Cobblemon.</p>
+      </div>
+      <div>
+        <h5>Navegação</h5>
+        <ul>
+          <li><a href="index.html#inicio">Início</a></li>
+          <li><a href="top-compradores.html">Top compradores</a></li>
+          <li><a href="historico.html">Histórico de compras</a></li>
+          <li><a href="tabela-valores.html">Tabela de valores</a></li>
+          <li><a href="roleta.html">Roleta</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Contato &amp; Servidor</h5>
+        <ul>
+          <li><a href="#">Discord da loja (em breve)</a></li>
+          <li><a href="#">Servidor: Jornadas Cobblemon</a></li>
+          <li><a href="#">IP do servidor (em breve)</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Nokron — Loja de Ovos Pokémon.</span>
+      <span>Fã-projeto para o servidor Jornadas Cobblemon. Não afiliado à Nintendo/Game Freak.</span>
+    </div>
+  </footer>
+
+  <!-- ================= MODAL PERFIL ================= -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal">
+      <div class="modal-head">
+        <h3 id="modal-title">Meu Perfil</h3>
+        <button class="modal-close" id="modal-close">&times;</button>
+      </div>
+
+      <div id="auth-view">
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="login">Entrar</button>
+          <button class="tab-btn" data-tab="cadastro">Cadastrar</button>
+        </div>
+
+        <p class="form-error" id="auth-error" hidden></p>
+
+        <form class="form-pane active" id="pane-login">
+          <div class="field">
+            <label for="login-identifier">Usuário ou e-mail</label>
+            <input type="text" id="login-identifier" placeholder="Seu nome de usuário ou e-mail" required>
+          </div>
+          <div class="field">
+            <label for="login-senha">Senha</label>
+            <input type="password" id="login-senha" placeholder="••••••••" required>
+          </div>
+          <button type="submit" class="btn btn-primary" id="login-submit-btn">Entrar</button>
+        </form>
+
+        <form class="form-pane" id="pane-cadastro">
+          <div class="field">
+            <label for="cad-email">E-mail</label>
+            <input type="email" id="cad-email" placeholder="seuemail@exemplo.com" required>
+          </div>
+          <div class="field">
+            <label for="cad-nick">Nome no jogo</label>
+            <input type="text" id="cad-nick" placeholder="Ex: SrCharizard" required>
+          </div>
+          <div class="field">
+            <label for="cad-discord">Discord</label>
+            <input type="text" id="cad-discord" placeholder="usuario_do_discord" required>
+          </div>
+          <div class="field">
+            <label for="cad-username">Nome de usuário no site</label>
+            <input type="text" id="cad-username" placeholder="Ex: sr_charizard" required>
+          </div>
+          <div class="field">
+            <label for="cad-senha">Senha</label>
+            <input type="password" id="cad-senha" placeholder="Mínimo 6 caracteres" required>
+          </div>
+          <div class="field">
+            <label for="cad-senha-confirm">Confirmar senha</label>
+            <input type="password" id="cad-senha-confirm" placeholder="Repita a senha" required>
+          </div>
+          <button type="submit" class="btn btn-primary" id="cadastro-submit-btn">Criar perfil</button>
+        </form>
+
+        <p class="modal-note">Seus dados ficam guardados com segurança e continuam disponíveis mesmo depois de fechar o navegador — é só entrar de novo com seu usuário/e-mail e senha.</p>
+      </div>
+
+      <div id="profile-view" style="display:none;">
+        <div class="profile-summary">
+          <div class="avatar-big" id="profile-avatar-big">?</div>
+          <h4 id="profile-name">Jogador</h4>
+          <p id="profile-sub">Perfil Nokron</p>
+          <button class="btn btn-ghost" id="logout-btn" style="width:100%;">Sair</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="script.js"></script>
+  <script src="pokedex.js"></script>
+  <script src="encomenda.js"></script>
+
+</body>
+</html>
