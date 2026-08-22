@@ -26,6 +26,7 @@
         auth.currentUser.reload().then(() => {
           if(currentUser) currentUser.emailVerified = auth.currentUser.emailVerified;
           renderModalState();
+          notifyProfileUpdate();
         }).catch(() => {});
       }
     }

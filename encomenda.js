@@ -277,6 +277,44 @@ const copyBtn = document.getElementById('copy-summary-btn');
 const copyFeedback = document.getElementById('copy-feedback');
 const sendStatus = document.getElementById('send-status');
 
+// ---------- Exigência de conta + e-mail confirmado para encomendar ----------
+// Qualquer pessoa pode navegar, criar conta e mexer no perfil livremente;
+// só na hora de enviar a encomenda em si que exigimos login com e-mail
+// confirmado (currentUser/openModal/showAuthFormPane vêm do script.js,
+// carregado antes deste arquivo).
+const orderAuthGate = document.getElementById('order-auth-gate');
+const orderAuthGateText = document.getElementById('order-auth-gate-text');
+const orderAuthGateBtn = document.getElementById('order-auth-gate-btn');
+
+function getOrderAuthBlockReason(){
+  if(typeof currentUser === 'undefined' || !currentUser) return 'guest';
+  if(!currentUser.emailVerified) return 'unverified';
+  return null;
+}
+
+function updateOrderAuthGate(){
+  const reason = getOrderAuthBlockReason();
+  if(reason === 'guest'){
+    orderAuthGateText.textContent = 'Você precisa estar logado para enviar uma encomenda.';
+    orderAuthGateBtn.textContent = 'Entrar ou criar conta';
+    orderAuthGate.hidden = false;
+  } else if(reason === 'unverified'){
+    orderAuthGateText.textContent = 'Confirme seu e-mail para poder enviar uma encomenda.';
+    orderAuthGateBtn.textContent = 'Abrir meu perfil e reenviar confirmação';
+    orderAuthGate.hidden = false;
+  } else {
+    orderAuthGate.hidden = true;
+  }
+  return reason;
+}
+
+orderAuthGateBtn.addEventListener('click', () => {
+  if(typeof openModal !== 'function') return;
+  const reason = getOrderAuthBlockReason();
+  openModal();
+  if(reason === 'guest' && typeof showAuthFormPane === 'function') showAuthFormPane('login');
+});
+
 // Webhook do Discord da loja: toda encomenda enviada aqui cai direto no canal.
 // Atenção: como o site é 100% front-end (sem backend), esta URL fica visível
 // no código-fonte da página. Qualquer pessoa que a encontre pode usá-la para
@@ -310,6 +348,11 @@ async function sendOrderToDiscord(order){
 
 orderForm.addEventListener('submit', async (e) => {
   e.preventDefault();
+
+  if(updateOrderAuthGate()){
+    orderAuthGate.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    return;
+  }
 
   if(!ballHidden.value){
     ballInput.setCustomValidity('Selecione uma pokébola da lista.');
@@ -399,5 +442,10 @@ function prefillOrderForm(){
   if(discordField && !discordField.value && currentUser.discord) discordField.value = currentUser.discord;
 }
 
-window.onProfileUpdate = prefillOrderForm;
-prefillOrderForm();
+function handleProfileUpdate(){
+  prefillOrderForm();
+  updateOrderAuthGate();
+}
+
+window.onProfileUpdate = handleProfileUpdate;
+handleProfileUpdate();
