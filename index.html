@@ -176,6 +176,7 @@
         </div>
 
         <p class="form-error" id="auth-error" hidden></p>
+        <p class="form-success" id="auth-success" hidden></p>
 
         <form class="form-pane active" id="pane-login">
           <div class="field">
@@ -186,7 +187,18 @@
             <label for="login-senha">Senha</label>
             <input type="password" id="login-senha" placeholder="••••••••" required>
           </div>
+          <button type="button" class="link-btn" id="forgot-password-link">Esqueci minha senha</button>
           <button type="submit" class="btn btn-primary" id="login-submit-btn">Entrar</button>
+        </form>
+
+        <form class="form-pane" id="pane-reset">
+          <p class="modal-note" style="margin-top:0; margin-bottom:1rem;">Digite seu usuário ou e-mail cadastrado. Vamos te enviar um link para redefinir a senha.</p>
+          <div class="field">
+            <label for="reset-identifier">Usuário ou e-mail</label>
+            <input type="text" id="reset-identifier" placeholder="Seu nome de usuário ou e-mail" required>
+          </div>
+          <button type="submit" class="btn btn-primary" id="reset-submit-btn">Enviar link de redefinição</button>
+          <button type="button" class="btn btn-ghost" id="reset-back-btn" style="width:100%; margin-top:.6rem;">Voltar para o login</button>
         </form>
 
         <form class="form-pane" id="pane-cadastro">
@@ -225,6 +237,10 @@
           <div class="avatar-big" id="profile-avatar-big">?</div>
           <h4 id="profile-name">Jogador</h4>
           <p id="profile-sub">Perfil Nokron</p>
+          <p class="form-error" id="verify-email-notice" hidden>
+            Confirme seu e-mail para garantir o acesso à sua conta.<br>
+            <button type="button" class="link-btn" id="resend-verification-btn">Reenviar e-mail de verificação</button>
+          </p>
           <button class="btn btn-ghost" id="logout-btn" style="width:100%;">Sair</button>
         </div>
       </div>

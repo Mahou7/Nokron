@@ -800,6 +800,31 @@
   }
   .form-error[hidden]{ display:none; }
 
+  .form-success{
+    background: rgba(46,158,78,.15);
+    border: 1px solid rgba(46,158,78,.4);
+    color: #6bd68a;
+    border-radius: 8px;
+    padding: .65rem .85rem;
+    font-size: .82rem;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+  }
+  .form-success[hidden]{ display:none; }
+
+  .link-btn{
+    display:inline-block;
+    background:none;
+    border:none;
+    color: var(--red-bright);
+    font-size: .78rem;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+    margin: -.5rem 0 1rem;
+  }
+  .link-btn:hover{ color: var(--red); }
+
   .modal .btn-primary{ width:100%; justify-content:center; margin-top: .4rem; }
 
   .btn:disabled{
